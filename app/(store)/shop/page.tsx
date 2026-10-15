@@ -4,6 +4,8 @@ import Link from "next/link"
 import { ArrowUpRight, Filter } from "lucide-react"
 import { ScrollReveal } from "@/components/ScrollReveal"
 
+export const dynamic = 'force-dynamic'
+
 export default async function ShopPage({
   searchParams,
 }: {
@@ -11,20 +13,27 @@ export default async function ShopPage({
 }) {
   const categoryFilter = searchParams.category as string | undefined
 
-  const products = await prisma.product.findMany({
-    where: {
-      ...(categoryFilter ? { category: { slug: categoryFilter } } : {})
-    },
-    include: {
-      images: { orderBy: { order: 'asc' }, take: 1 },
-      category: true,
-    }
-  })
+  let products: any[] = []
+  let categories: any[] = []
 
-  const categories = await prisma.category.findMany({
-    where: { active: true },
-    orderBy: { sortOrder: 'asc' }
-  })
+  try {
+    products = await prisma.product.findMany({
+      where: {
+        ...(categoryFilter ? { category: { slug: categoryFilter } } : {})
+      },
+      include: {
+        images: { orderBy: { order: 'asc' }, take: 1 },
+        category: true,
+      }
+    })
+
+    categories = await prisma.category.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: 'asc' }
+    })
+  } catch (err) {
+    console.error("Failed to fetch shop products/categories:", err)
+  }
 
   return (
     <div className="bg-background min-h-screen pb-24">
@@ -64,7 +73,7 @@ export default async function ShopPage({
                     All Products
                   </Link>
                 </li>
-                {categories.map(cat => (
+                {categories.map((cat: any) => (
                   <li key={cat.id}>
                     <Link 
                       href={`/shop?category=${cat.slug}`} 
@@ -89,7 +98,7 @@ export default async function ShopPage({
           </ScrollReveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {products.map((product, idx) => (
+            {products.map((product: any, idx: number) => (
               <ScrollReveal key={product.id} delay={idx * 0.05}>
                 <div className={`group relative p-4 rounded-3xl flex flex-col h-[250px] transition-colors ${idx === 0 && !categoryFilter ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}>
                   <div className="flex-1 relative w-full mb-6">
@@ -103,7 +112,7 @@ export default async function ShopPage({
                     ) : (
                       <div className="w-full h-full flex items-center justify-center font-bold opacity-20">NO IMAGE</div>
                     )}
-                    {product.discount > 0 && (
+                    {(product.discount ?? 0) > 0 && (
                       <div className="absolute top-0 left-0 bg-foreground text-background text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider z-10 shadow-lg">
                         Sale
                       </div>

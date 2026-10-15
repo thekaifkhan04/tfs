@@ -4,6 +4,8 @@ import Image from "next/image"
 import { Star, MessageCircle, Heart, ShieldCheck, Zap, Truck } from "lucide-react"
 import { ScrollReveal } from "@/components/ScrollReveal"
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const product = await prisma.product.findUnique({
     where: { slug: params.slug },
@@ -42,7 +44,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 ) : (
                   <div className="w-full h-full flex items-center justify-center font-bold opacity-20">NO IMAGE</div>
                 )}
-                {product.discount > 0 && (
+                {(product.discount ?? 0) > 0  && (
                   <div className="absolute top-8 left-8 bg-foreground text-background text-sm font-bold px-4 py-2 rounded-full uppercase tracking-wider z-10 shadow-lg">
                     Sale
                   </div>

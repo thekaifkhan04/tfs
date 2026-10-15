@@ -17,7 +17,7 @@ type Product = {
   name: string
   slug: string
   price: number
-  category: { name: string } | null
+  category: { name: string; slug: string } | null
   images: { url: string }[]
 }
 

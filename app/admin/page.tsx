@@ -1,12 +1,25 @@
 import { prisma } from "@/lib/db/prisma"
 import { Package, Tag, Users, TrendingUp } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboard() {
-  const [productCount, categoryCount, leadCount] = await Promise.all([
-    prisma.product.count(),
-    prisma.category.count(),
-    prisma.lead.count()
-  ])
+  let productCount = 0
+  let categoryCount = 0
+  let leadCount = 0
+
+  try {
+    const results = await Promise.all([
+      prisma.product.count(),
+      prisma.category.count(),
+      prisma.lead.count()
+    ])
+    productCount = results[0]
+    categoryCount = results[1]
+    leadCount = results[2]
+  } catch (err) {
+    console.error("Failed to fetch admin stats:", err)
+  }
 
   const stats = [
     { name: "Total Products", value: productCount, icon: Package },

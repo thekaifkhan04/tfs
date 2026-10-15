@@ -6,19 +6,27 @@ import { ArrowUpRight, ArrowRight } from "lucide-react"
 import { ScrollReveal } from "@/components/ScrollReveal"
 import { FilteredProductGrid } from "@/components/home/FilteredProductGrid"
 
-export default async function HomePage() {
-  const categories = await prisma.category.findMany({
-    where: { active: true },
-    orderBy: { sortOrder: 'asc' },
-    select: { id: true, name: true, slug: true },
-    take: 4
-  })
+export const dynamic = 'force-dynamic'
 
-  // Fetch more products so we can actually filter them by category
-  const allProducts = await prisma.product.findMany({
-    include: { images: { orderBy: { order: 'asc' }, take: 1 }, category: true },
-    take: 20
-  })
+export default async function HomePage() {
+  let categories: { id: string; name: string; slug: string }[] = []
+  let allProducts: any[] = []
+
+  try {
+    categories = await prisma.category.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, name: true, slug: true },
+      take: 4
+    })
+
+    allProducts = await prisma.product.findMany({
+      include: { images: { orderBy: { order: 'asc' }, take: 1 }, category: true },
+      take: 20
+    })
+  } catch (err) {
+    console.error("Failed to load home page products/categories:", err)
+  }
 
   return (
     <div className="bg-background">
@@ -74,13 +82,13 @@ export default async function HomePage() {
       <section className="py-10 px-4 md:px-12 bg-muted/30">
         <div className="container mx-auto">
           <FilteredProductGrid 
-            products={allProducts.map(p => ({
+            products={allProducts.map((p: any) => ({
               id: p.id,
               name: p.name,
               slug: p.slug,
               price: p.price,
               category: p.category ? { name: p.category.name, slug: p.category.slug } : null,
-              images: p.images.map(img => ({ url: img.url }))
+              images: (p.images || []).map((img: any) => ({ url: img.url }))
             }))}
             categories={categories}
           />
