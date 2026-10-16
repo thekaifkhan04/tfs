@@ -3,6 +3,18 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/db/prisma"
 import bcrypt from "bcryptjs"
 
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = "default_jwt_secret_tfs_storefront_secure_key_12345"
+}
+
+if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.startsWith("http")) {
+  process.env.NEXTAUTH_URL = `https://${process.env.NEXTAUTH_URL}`
+} else if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
+  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`
+} else if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = "http://localhost:3000"
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
